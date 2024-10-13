@@ -25,7 +25,7 @@ async def run():
     ins_post_content = await instagram.scrape_post_with_httpx("https://www.instagram.com/p/C_9l_-cTFJV/?igsh=N2Mwd3JyOWYzamFl")
     output.joinpath("food-multi-image-post-use-httpx-with-parse-post-function.json").write_text(json.dumps(ins_post_content, indent=2, ensure_ascii=False), encoding='utf-8')
     print("running TikTok scrape and saving results to ./results directory")
-    tiktok_post_content = await tiktok.scrape_post_with_httpx("https://www.tiktok.com/@oddanimalspecimens/video/7198206283571285294")
+    tiktok_post_content = await tiktok.scrape_post_with_httpx("https://www.tiktok.com/@simple.home.edit/video/7309754078010051841?q=recipe%20blogger&t=1728859828193")
     output.joinpath("oddanimalspecimens-video-post-use-httpx-with-parse-post-function.json").write_text(json.dumps(tiktok_post_content, indent=2, ensure_ascii=False), encoding='utf-8')
 
 

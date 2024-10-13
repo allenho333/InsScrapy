@@ -13,6 +13,7 @@ from loguru import logger as log
 from scrapfly import ScrapeConfig, ScrapflyClient, ScrapeApiResponse
 from httpx import AsyncClient, Response
 from parsel import Selector
+import extractRecipe
 
 # SCRAPFLY = ScrapflyClient(key=os.environ["SCRAPFLY_KEY"])
 
@@ -100,9 +101,14 @@ async def scrape_post_with_httpx(url:str) -> Dict:
 
         # Parse the response and extract post data
         post_data = parse_post_with_httpx(response)
-
+        
         log.success(f"Successfully scraped post from: {url}")
-        return post_data
+        recipe_name, ingredients = extractRecipe.extract_recipe_details(post_data["desc"])
+        return {
+         "parseData" :   post_data,
+         "recipe_name": recipe_name,
+         "ingredients": ingredients
+         }
     except Exception as e:
         log.error(f"Failed to scrape post from {url}: {e}")
         return {}

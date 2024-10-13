@@ -10,7 +10,7 @@ import os
 from typing import Dict, Optional
 from urllib.parse import quote
 import httpx
-
+import extractRecipe
 import jmespath
 from loguru import logger as log
 from scrapfly import ScrapeConfig, ScrapflyClient
@@ -225,7 +225,12 @@ async def scrape_post_with_httpx(url_or_shortcode: str) -> Dict:
         data=body
     )
     data = json.loads(result.content)
-    return parse_post(data["data"]["xdt_shortcode_media"])
+    recipe_name, ingredients = extractRecipe.extract_recipe_details(parse_post(data["data"]["xdt_shortcode_media"])["captions"][0])
+    return {
+            "parseData" : parse_post(data["data"]["xdt_shortcode_media"]),
+            "recipe_name": recipe_name,
+            "ingredients": ingredients
+            }
 
 async def scrape_user_posts(user_id: str, page_size=24, max_pages: Optional[int] = None):
     """Scrape all posts of an instagram user of given numeric user id"""
