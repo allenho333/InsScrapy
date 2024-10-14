@@ -3,15 +3,15 @@ import spacy
 import subprocess
 
 # Function to load the SpaCy model
-def load_spacy_model():
+async def load_spacy_model():
     try:
         # Try to load the model
-        nlp = spacy.load("en_core_web_sm")
+        await nlp = spacy.load("en_core_web_sm")
         return nlp
     except OSError:
         # If the model is not found, download and install it
-        subprocess.run(["python", "-m", "spacy", "download", "en_core_web_sm"])
-        nlp = spacy.load("en_core_web_sm")
+        await subprocess.run(["python", "-m", "spacy", "download", "en_core_web_sm"])
+        await nlp = spacy.load("en_core_web_sm")
         return nlp
 
 # Load the model
