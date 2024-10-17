@@ -20,6 +20,7 @@ python -m spacy download en_core_web_sm
 Usage
 Run the spider using:
 ```bash
+export SCRAPFLY_KEY="your_own_scrapifly_key"
 python run.py
 ```
 ### Important Notes

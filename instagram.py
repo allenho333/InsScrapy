@@ -15,7 +15,7 @@ import jmespath
 from loguru import logger as log
 from scrapfly import ScrapeConfig, ScrapflyClient
 
-# SCRAPFLY = ScrapflyClient(key=os.environ["SCRAPFLY_KEY"])
+SCRAPFLY = ScrapflyClient(key=os.environ["SCRAPFLY_KEY"])
 BASE_CONFIG = {
     # Instagram.com requires Anti Scraping Protection bypass feature.
     # for more: https://scrapfly.io/docs/scrape-api/anti-scraping-protection
@@ -202,7 +202,7 @@ async def scrape_post(url_or_shortcode: str) -> Dict:
     )
     
     data = json.loads(result.content)
-    return parse_post(data["data"]["xdt_shortcode_media"])
+    return data
 
 async def scrape_post_with_httpx(url_or_shortcode: str) -> Dict:
     """Scrape single Instagram post data"""
@@ -225,12 +225,42 @@ async def scrape_post_with_httpx(url_or_shortcode: str) -> Dict:
         data=body
     )
     data = json.loads(result.content)
-    recipe_name, ingredients = extractRecipe.extract_recipe_details(parse_post(data["data"]["xdt_shortcode_media"])["captions"][0])
-    return {
-            "parseData" : parse_post(data["data"]["xdt_shortcode_media"]),
-            "recipe_name": recipe_name,
-            "ingredients": ingredients
+    return data
+
+
+async def fallback_scrape_post(url_or_shortcode: str) -> Dict:
+    scrape_data = None
+    """Scrape single Instagram post data"""
+    try:
+        scrape_data = await scrape_post_with_httpx(url_or_shortcode)
+    except Exception as e:
+        log.error("failed to scrape post with error: {}", e)
+        scrape_data = await scrape_post(url_or_shortcode)
+
+    """Extract recipe details from the post caption"""
+    try:
+        recipe_name, ingredients, servings,active_cooking_time,total_cooking_time,instructions = extractRecipe.extract_recipe_details(parse_post(scrape_data["data"]["xdt_shortcode_media"])["captions"][0])
+        parsed_data = parse_post(scrape_data["data"]["xdt_shortcode_media"])
+        return {
+                "ins_data" : parsed_data,
+                "recipe_details":{"name": recipe_name,
+                "ingredients": ingredients,
+                "instructions": instructions,
+                'url': url_or_shortcode,
+                "thumbnail_url" : parsed_data["thumbnail_src"],
+                'servings': servings,
+                active_cooking_time: active_cooking_time,
+                total_cooking_time: total_cooking_time,
+                'rating_count':parsed_data["likes"] #ins post total likes
+                # rating_value:
+                }
             }
+    except Exception as e:
+        log.error("failed to extract recipe details with error: {}", e)
+        return {
+            "error": "failed to extract recipe details"
+        }
+
 
 async def scrape_user_posts(user_id: str, page_size=24, max_pages: Optional[int] = None):
     """Scrape all posts of an instagram user of given numeric user id"""

@@ -3,8 +3,9 @@ import spacy
 import subprocess
 
 # Function to load the SpaCy model
-async def load_spacy_model():
+def load_spacy_model():
     try:
+        print("Loading SpaCy model...")
         # Try to load the model
         nlp = spacy.load("en_core_web_sm")
         return nlp
@@ -93,5 +94,31 @@ def extract_recipe_details(text):
     if not ingredients:
         ingredients_pattern = r"(\d+[^a-zA-Z]*\s[a-zA-Z]+[^:\n]*)"
         ingredients = re.findall(ingredients_pattern, text)
+
+    # extract servings
+    servings = None
+    servings_pattern = r"(\d+\s*servings|\d+\s*people|\d+\s*portions)"
+    servings_match = re.search(servings_pattern, text)
+    if servings_match:
+        servings = servings_match.group(0)
     
-    return recipe_name, ingredients
+    #extract active_cooking_time
+    active_cooking_time = None
+    active_cooking_time_pattern = r"(\d+\s*minutes | \d+\s*hours)"
+    active_cooking_time_match = re.search(active_cooking_time_pattern, text)
+    if active_cooking_time_match:
+        active_cooking_time = active_cooking_time_match.group(0)
+    #total_cooking_time
+    total_cooking_time = None
+    total_cooking_time_pattern = r"(\d+\s*minutes | \d+\s*hours)"
+    total_cooking_time_match = re.search(total_cooking_time_pattern, text)
+    if total_cooking_time_match:
+        total_cooking_time = total_cooking_time_match.group(0)
+    # extract instructions
+    instructions = []
+    instructions_pattern = r"(?<=method in comments:)[\s\S]*"
+    instructions_match = re.search(instructions_pattern, text)
+    if instructions_match:
+        instructions_text = instructions_match.group(0)
+        instructions = [step.strip() for step in instructions_text.split("\n") if step.strip()]
+    return recipe_name, ingredients, servings,active_cooking_time,total_cooking_time,instructions
